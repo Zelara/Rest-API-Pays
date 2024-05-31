@@ -68,3 +68,42 @@ function get_pays_destinations($request)
     // Return JSON response
     return rest_ensure_response($response_data);
 }
+
+// Define the shortcode function
+function pays_menu_shortcode()
+{
+    ob_start(); // Start output buffering
+?>
+    <div id="pays-menu">
+        <select id="pays-select">
+            <option value="France">France</option>
+            <option value="États-Unis">États-Unis</option>
+            <option value="Canada">Canada</option>
+            <!-- Add more options here -->
+        </select>
+        <div id="destinations-display"></div>
+    </div>
+
+    <script type="text/javascript">
+        document.getElementById('pays-select').addEventListener('change', function() {
+            var pays = this.value;
+            fetch('<?php echo esc_url(rest_url('voyage/pays')); ?>?pays=' + pays)
+                .then(response => response.json())
+                .then(destinations => {
+                    const display = document.getElementById('destinations-display');
+                    display.innerHTML = ''; // Clear previous content
+                    destinations.forEach(function(destination) {
+                        display.innerHTML += `<div class="destination">
+                            <h4>${destination.title}</h4>
+                            <img src="${destination.image}" alt="Image de ${destination.title}">
+                        </div>`;
+                    });
+                });
+        });
+    </script>
+<?php
+    return ob_get_clean(); // Return the buffered content
+}
+
+// Register the shortcode with WordPress
+add_shortcode('pays_menu', 'pays_menu_shortcode');
