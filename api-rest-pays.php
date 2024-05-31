@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: API REST Pays
-Description: API REST pour générer un menu de pays et afficher les destinations.
-Version: 1.0
+Description: API REST pour générer un menu de pays sous forme de boutons et afficher les destinations.
+Version: 1.3
 Author: James Ling
 */
 
@@ -17,29 +17,24 @@ add_action('rest_api_init', function () {
 // Callback function for REST API endpoint
 function get_pays_destinations($request)
 {
-    // Get the selected pays from the request
     $selected_pays = $request->get_param('pays');
-
-    // Default to France if no pays is selected
     if (empty($selected_pays)) {
-        $selected_pays = 'France';
+        $selected_pays = 'France';  // Default to France if no country is selected
     }
 
-    // Query destinations based on selected pays
     $args = array(
         'post_type' => 'destination',
-        'posts_per_page' => -1, // Retrieve all destinations
+        'posts_per_page' => -1,
         'meta_query' => array(
             array(
                 'key' => 'pays',
                 'value' => $selected_pays,
+                'compare' => '='
             ),
         ),
     );
 
     $destinations = new WP_Query($args);
-
-    // Prepare the response data
     $response_data = array();
 
     if ($destinations->have_posts()) {
@@ -48,8 +43,6 @@ function get_pays_destinations($request)
             $destination_id = get_the_ID();
             $destination_title = get_the_title();
             $destination_image = get_the_post_thumbnail_url($destination_id, 'medium');
-
-            // If no image is found, use a placeholder
             if (empty($destination_image)) {
                 $destination_image = 'https://via.placeholder.com/150';
             }
@@ -62,48 +55,54 @@ function get_pays_destinations($request)
         }
     }
 
-    // Reset post data
     wp_reset_postdata();
-
-    // Return JSON response
     return rest_ensure_response($response_data);
 }
 
 // Define the shortcode function
 function pays_menu_shortcode()
 {
-    ob_start(); // Start output buffering
+    ob_start();
 ?>
     <div id="pays-menu">
-        <select id="pays-select">
-            <option value="France">France</option>
-            <option value="États-Unis">États-Unis</option>
-            <option value="Canada">Canada</option>
-            <!-- Add more options here -->
-        </select>
+        <button class="pays-button" data-pays="France">France</button>
+        <button class="pays-button" data-pays="États-Unis">États-Unis</button>
+        <button class="pays-button" data-pays="Canada">Canada</button>
+        <button class="pays-button" data-pays="Argentine">Argentine</button>
+        <button class="pays-button" data-pays="Chili">Chili</button>
+        <button class="pays-button" data-pays="Belgique">Belgique</button>
+        <button class="pays-button" data-pays="Maroc">Maroc</button>
+        <button class="pays-button" data-pays="Mexique">Mexique</button>
+        <button class="pays-button" data-pays="Japon">Japon</button>
+        <button class="pays-button" data-pays="Italie">Italie</button>
+        <button class="pays-button" data-pays="Islande">Islande</button>
+        <button class="pays-button" data-pays="Chine">Chine</button>
+        <button class="pays-button" data-pays="Grèce">Grèce</button>
+        <button class="pays-button" data-pays="Suisse">Suisse</button>
         <div id="destinations-display"></div>
     </div>
 
     <script type="text/javascript">
-        document.getElementById('pays-select').addEventListener('change', function() {
-            var pays = this.value;
-            fetch('<?php echo esc_url(rest_url('voyage/pays')); ?>?pays=' + pays)
-                .then(response => response.json())
-                .then(destinations => {
-                    const display = document.getElementById('destinations-display');
-                    display.innerHTML = ''; // Clear previous content
-                    destinations.forEach(function(destination) {
-                        display.innerHTML += `<div class="destination">
-                            <h4>${destination.title}</h4>
-                            <img src="${destination.image}" alt="Image de ${destination.title}">
-                        </div>`;
+        document.querySelectorAll('.pays-button').forEach(button => {
+            button.addEventListener('click', function() {
+                var pays = this.getAttribute('data-pays');
+                fetch('<?php echo esc_url(rest_url('voyage/pays')); ?>?pays=' + pays)
+                    .then(response => response.json())
+                    .then(destinations => {
+                        const display = document.getElementById('destinations-display');
+                        display.innerHTML = '';
+                        destinations.forEach(function(destination) {
+                            display.innerHTML += `<div class="destination">
+                                <h4>${destination.title}</h4>
+                                <img src="${destination.image}" alt="Image de ${destination.title}">
+                            </div>`;
+                        });
                     });
-                });
+            });
         });
     </script>
 <?php
-    return ob_get_clean(); // Return the buffered content
+    return ob_get_clean();
 }
 
-// Register the shortcode with WordPress
 add_shortcode('pays_menu', 'pays_menu_shortcode');
