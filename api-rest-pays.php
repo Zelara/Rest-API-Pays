@@ -82,6 +82,14 @@ function pays_menu_shortcode()
         <div id="destinations-display"></div>
     </div>
 
+
+    <div class="gallery">
+        <img src="https://via.placeholder.com/150" alt="Placeholder Image 1">
+        <img src="https://via.placeholder.com/150" alt="Placeholder Image 2">
+        <img src="https://via.placeholder.com/150" alt="Placeholder Image 3">
+        <img src="https://via.placeholder.com/150" alt="Placeholder Image 4">
+    </div>
+
     <script type="text/javascript">
         document.querySelectorAll('.pays-button').forEach(button => {
             button.addEventListener('click', function() {
